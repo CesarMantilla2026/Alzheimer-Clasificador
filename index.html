@@ -206,30 +206,50 @@
             <div class="results-title">Resultados del Diagnóstico</div>
             
             <div class="prediction-row" id="row-0">
-                <div class="prediction-labels"><span>Mild Demented (Demencia Leve)</span><span class="percentage">0%</span></div>
-                <div class="progress-bar-container"><div class="progress-bar"></div></div>
+                <div class="prediction-labels">
+                    <span>Non Demented (Sin Demencia)</span>
+                    <span class="percentage">0%</span>
+                </div>
+                <div class="progress-bar-container">
+                    <div class="progress-bar"></div>
+                </div>
             </div>
 
             <div class="prediction-row" id="row-1">
-                <div class="prediction-labels"><span>Moderate Demented (Demencia Moderada)</span><span class="percentage">0%</span></div>
-                <div class="progress-bar-container"><div class="progress-bar"></div></div>
+                <div class="prediction-labels">
+                    <span>Very Mild Demented (Demencia Muy Leve)</span>
+                    <span class="percentage">0%</span>
+                </div>
+                <div class="progress-bar-container">
+                    <div class="progress-bar"></div>
+                </div>
             </div>
 
             <div class="prediction-row" id="row-2">
-                <div class="prediction-labels"><span>Non Demented (Sin Demencia)</span><span class="percentage">0%</span></div>
-                <div class="progress-bar-container"><div class="progress-bar"></div></div>
+                <div class="prediction-labels">
+                    <span>Mild Demented (Demencia Leve)</span>
+                    <span class="percentage">0%</span>
+                </div>
+                <div class="progress-bar-container">
+                    <div class="progress-bar"></div>
+                </div>
             </div>
 
             <div class="prediction-row" id="row-3">
-                <div class="prediction-labels"><span>Very Mild Demented (Demencia Muy Leve)</span><span class="percentage">0%</span></div>
-                <div class="progress-bar-container"><div class="progress-bar"></div></div>
+                <div class="prediction-labels">
+                    <span>Moderate Demented (Demencia Moderada)</span>
+                    <span class="percentage">0%</span>
+                </div>
+                <div class="progress-bar-container">
+                    <div class="progress-bar"></div>
+                </div>
             </div>
         </div>
     </div>
 
     <script>
         let modelo;
-        const CLASES = ["Mild Demented", "Moderate Demented", "Non Demented", "Very Mild Demented"];
+        const CLASES = ["Non Demented", "Very Mild Demented", "Mild Demented", "Moderate Demented"];
         const fileInput = document.getElementById('file-input');
         const previewImage = document.getElementById('preview-image');
         const btnPredict = document.getElementById('btn-predict');
