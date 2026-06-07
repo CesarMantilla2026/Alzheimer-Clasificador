@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analizador de MRI Cerebral - Alzheimer CNN</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
+    <style>
+        :root {
+            --bg-color: #f7f5f0;
+            --card-bg: #ffffff;
+            --primary-blue: #1e3a8a;
+            --accent-blue: #3b82f6;
+            --text-dark: #1f2937;
+            --text-light: #6b7280;
+            --border-color: #e5e7eb;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-dark);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            background-color: var(--card-bg);
+            max-width: 500px;
+            width: 100%;
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+            padding: 30px;
+            text-align: center;
+            border: 1px solid var(--border-color);
+        }
+
+        header h1 {
+            color: var(--primary-blue);
+            font-size: 24px;
+            margin-bottom: 8px;
+            font-weight: 700;
+        }
+
+        header p {
+            color: var(--text-light);
+            font-size: 14px;
+            margin-bottom: 25px;
+        }
+
+        .upload-area {
+            border: 2px dashed #cbd5e1;
+            border-radius: 12px;
+            padding: 30px 20px;
+            cursor: pointer;
+            background-color: #fcfbfa;
+            transition: all 0.3s ease;
+            margin-bottom: 20px;
+        }
+
+        .upload-area:hover {
+            border-color: var(--primary-blue);
+            background-color: #f0f4f8;
+        }
+
+        .upload-icon {
+            font-size: 40px;
+            color: var(--text-light);
+            margin-bottom: 10px;
+        }
+
+        .upload-text {
+            font-size: 14px;
+            color: var(--text-dark);
+            font-weight: 500;
+        }
+
+        .upload-subtext {
+            font-size: 12px;
+            color: var(--text-light);
+            margin-top: 4px;
+        }
+
+        #file-input {
+            display: none;
+        }
+
+        #preview-image {
+            max-width: 100%;
+            max-height: 200px;
+            border-radius: 8px;
+            display: none;
+            margin: 0 auto 20px auto;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .btn-inferencia {
+            background-color: var(--primary-blue);
+            color: #ffffff;
+            border: none;
+            width: 100%;
+            padding: 14px;
+            font-size: 16px;
+            font-weight: 600;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background 0.2s;
+            display: none;
+        }
+
+        .btn-inferencia:hover {
+            background-color: #172554;
+        }
+
+        #status-message {
+            margin-top: 15px;
+            font-size: 13px;
+            color: var(--accent-blue);
+            font-weight: 500;
+        }
+
+        .results-box {
+            margin-top: 25px;
+            padding-top: 20px;
+            border-top: 1px solid var(--border-color);
+            display: none;
+            text-align: left;
+        }
+
+        .results-title {
+            font-size: 16px;
+            color: var(--primary-blue);
+            font-weight: 600;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .prediction-row {
+            margin-bottom: 12px;
+        }
+
+        .prediction-labels {
+            display: flex;
+            justify-content: space-between;
+            font-size: 13px;
+            font-weight: 500;
+            margin-bottom: 4px;
+        }
+
+        .progress-bar-container {
+            background-color: #e2e8f0;
+            border-radius: 6px;
+            height: 8px;
+            width: 100%;
+            overflow: hidden;
+        }
+
+        .progress-bar {
+            background-color: var(--primary-blue);
+            height: 100%;
+            width: 0%;
+            transition: width 0.5s ease-out;
+            border-radius: 6px;
+        }
+
+        .highest .progress-bar {
+            background-color: #10b981;
+        }
+        .highest .prediction-labels {
+            color: #10b981;
+            font-weight: 700;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <header>
+            <h1>ANÁLISIS DE MRI CEREBRAL</h1>
+            <p>Clasificador de diagnóstico de Alzheimer por Red Neuronal</p>
+        </header>
+
+        <div class="upload-area" id="drop-zone" onclick="document.getElementById('file-input').click()">
+            <div class="upload-icon">🧠</div>
+            <div class="upload-text">Selecciona o arrastra la imagen MRI</div>
+            <div class="upload-subtext">Soporta formatos PNG, JPG o JPEG</div>
+        </div>
+        <input type="file" id="file-input" accept="image/*">
+
+        <img id="preview-image" src="#" alt="Vista previa del MRI">
+
+        <button class="btn-inferencia" id="btn-predict" onclick="ejecutarInferencia()">Ejecutar Inferencia CNN</button>
+
+        <div id="status-message">Cargando modelo de Inteligencia Artificial...</div>
+
+        <div class="results-box" id="results-panel">
+            <div class="results-title">Resultados del Diagnóstico</div>
+            
+            <div class="prediction-row" id="row-0">
+                <div class="prediction-labels"><span>Mild Demented (Demencia Leve)</span><span class="percentage">0%</span></div>
+                <div class="progress-bar-container"><div class="progress-bar"></div></div>
+            </div>
+
+            <div class="prediction-row" id="row-1">
+                <div class="prediction-labels"><span>Moderate Demented (Demencia Moderada)</span><span class="percentage">0%</span></div>
+                <div class="progress-bar-container"><div class="progress-bar"></div></div>
+            </div>
+
+            <div class="prediction-row" id="row-2">
+                <div class="prediction-labels"><span>Non Demented (Sin Demencia)</span><span class="percentage">0%</span></div>
+                <div class="progress-bar-container"><div class="progress-bar"></div></div>
+            </div>
+
+            <div class="prediction-row" id="row-3">
+                <div class="prediction-labels"><span>Very Mild Demented (Demencia Muy Leve)</span><span class="percentage">0%</span></div>
+                <div class="progress-bar-container"><div class="progress-bar"></div></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let modelo;
+        const CLASES = ["Mild Demented", "Moderate Demented", "Non Demented", "Very Mild Demented"];
+
+        async function cargarModelo() {
+            try {
+                modelo = await tf.loadLayersModel('model.json');
+                document.getElementById('status-message').innerText = "Modelo de IA listo para usar.";
+                document.getElementById('status-message').style.color = "#10b981";
+            } catch (error) {
+                console.error(error);
+                document.getElementById('status-message').innerText = "Error al cargar el modelo.";
+                document.getElementById('status-message').style.color = "#ef4444";
+            }
+        }
+
+        const fileInput = document.getElementById('file-input');
+        const previewImage = document.getElementById('preview-image');
+        const btnPredict = document.getElementById('btn-predict');
+
+        fileInput.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    previewImage.src = event.target.result;
+                    previewImage.style.display = "block";
+                    btnPredict.style.display = "block";
+                    document.getElementById('results-panel').style.display = "none";
+                }
+                reader.readAsDataURL(file);
+            }
+        });
+
+        async function ejecutarInferencia() {
+            if (!modelo) return;
+
+            document.getElementById('status-message').innerText = "Procesando MRI y ejecutando predicción...";
+            document.getElementById('status-message').style.color = "#3b82f6";
+
+            const imgElement = document.getElementById('preview-image');
+            
+            let tensor = tf.browser.fromPixels(imgElement)
+                .resizeNearestNeighbor([128, 128])
+                .toFloat()
+                .div(tf.scalar(255.0))
+                .expandDims();
+
+            const prediccion = await modelo.predict(tensor).data();
+            
+            let indiceGanador = 0;
+            let valorMaximo = 0;
+
+            for (let i = 0; i < prediccion.length; i++) {
+                const porcentaje = (prediccion[i] * 100).toFixed(1);
+                const fila = document.getElementById(`row-${i}`);
+                
+                fila.querySelector('.percentage').innerText = `${porcentaje}%`;
+                fila.querySelector('.progress-bar').style.width = `${porcentaje}%`;
+                
+                fila.classList.remove('highest');
+
+                if (prediccion[i] > valorMaximo) {
+                    valorMaximo = prediccion[i];
+                    indiceGanador = i;
+                }
+            }
+
+            document.getElementById(`row-${indiceGanador}`).classList.add('highest');
+            document.getElementById('status-message').innerText = "Análisis completado con éxito.";
+            document.getElementById('status-message').style.color = "#10b981";
+            document.getElementById('results-panel').style.display = "block";
+        }
+
+        cargarModelo();
+    </script>
+</body>
+</html>
