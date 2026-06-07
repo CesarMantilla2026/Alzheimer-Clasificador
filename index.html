@@ -301,7 +301,34 @@
             document.getElementById('results-panel').style.display = "block";
         }
 
-        cargarModelo();
+        async function cargarModelo() {
+            try {
+                
+                const urlBase = window.location.href.stripTrailingSlash();
+                
+                
+                modelo = await tf.loadLayersModel(`${urlBase}/model.json`);
+                
+                document.getElementById('status-message').innerText = "Modelo de IA listo para usar.";
+                document.getElementById('status-message').style.color = "#10b981";
+            } catch (error) {
+                console.error(error);
+                
+                try {
+                    modelo = await tf.loadLayersModel('./model.json');
+                    document.getElementById('status-message').innerText = "Modelo de IA listo para usar.";
+                    document.getElementById('status-message').style.color = "#10b981";
+                } catch (err) {
+                    document.getElementById('status-message').innerText = "Error al cargar el modelo.";
+                    document.getElementById('status-message').style.color = "#ef4444";
+                }
+            }
+        }
+
+        
+        String.prototype.stripTrailingSlash = function() {
+            return this.replace(/\/+$/, "");
+        };
     </script>
 </body>
 </html>
