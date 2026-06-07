@@ -230,19 +230,6 @@
     <script>
         let modelo;
         const CLASES = ["Mild Demented", "Moderate Demented", "Non Demented", "Very Mild Demented"];
-
-        async function cargarModelo() {
-            try {
-                modelo = await tf.loadLayersModel('model.json');
-                document.getElementById('status-message').innerText = "Modelo de IA listo para usar.";
-                document.getElementById('status-message').style.color = "#10b981";
-            } catch (error) {
-                console.error(error);
-                document.getElementById('status-message').innerText = "Error al cargar el modelo.";
-                document.getElementById('status-message').style.color = "#ef4444";
-            }
-        }
-
         const fileInput = document.getElementById('file-input');
         const previewImage = document.getElementById('preview-image');
         const btnPredict = document.getElementById('btn-predict');
@@ -303,16 +290,24 @@
 
         async function cargarModelo() {
             try {
-                // Forma nativa y directa para servidores en la nube como Vercel
+                console.log("Intentando cargar modelo...");
+
                 modelo = await tf.loadLayersModel('./model.json');
+
+                console.log("Modelo cargado correctamente");
+
                 document.getElementById('status-message').innerText = "Modelo de IA listo para usar.";
                 document.getElementById('status-message').style.color = "#10b981";
+
             } catch (error) {
-                console.error(error);
+                console.error("Error al cargar modelo:", error);
+
                 document.getElementById('status-message').innerText = "Error al cargar el modelo.";
                 document.getElementById('status-message').style.color = "#ef4444";
             }
         }
+
+cargarModelo();
     </script>
 </body>
 </html>
